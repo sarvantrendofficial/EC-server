@@ -21,7 +21,7 @@ const sendVerificationEmail = async (email, otp) => {
 
 
         const mailOptions = {
-            from: 'kjajaykumar8307@gmail.com',
+            from: 'sarvantrendofficial@gmail.com',
             to: email,
             subject: 'Email Verification Code',
             html: htmlContent
