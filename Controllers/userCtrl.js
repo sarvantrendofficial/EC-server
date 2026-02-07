@@ -85,11 +85,11 @@ exports.verifyOtp = async (req, res) => {
         const token = generateToken(user);
 
         // Wrap email in try/catch so it doesn't break the whole response
-        try {
-            await verifySuccessEmail(user.email, user.name);
-        } catch (mailErr) {
-            console.error("Mail failed, but user verified:", mailErr);
-        }
+        // try {
+        //     await verifySuccessEmail(user.email, user.name);
+        // } catch (mailErr) {
+        //     console.error("Mail failed, but user verified:", mailErr);
+        // }
 
         return res.status(200).json({
             message: "OTP Verified Successfully!",
