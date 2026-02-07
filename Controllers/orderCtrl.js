@@ -1,11 +1,39 @@
 const Order = require('../Models/orderModel');
 
+const ALLOWED_PINCODES = ['620013', '620014', '620021', '620018', '620008', '620001', '620019', '620010', '620007'];
+
 exports.createOrder = async (req, res) => {
     try {
-        await Order.create(req.body);
+        const { customer, items, totalAmount, userId } = req.body;
+
+        if (!customer || !customer.pincode) {
+            return res.status(400).json({ success: false, message: "Pincode is required." });
+        }
+
+        if (!ALLOWED_PINCODES.includes(customer.pincode)) {
+            return res.status(400).json({
+                success: false,
+                message: "Sorry, we do not deliver to this pincode yet."
+            });
+        }
+
+        const newOrder = new Order({
+            customerName: customer.name,
+            phone: customer.phone,
+            address: customer.address,
+            pincode: customer.pincode,
+            items: items,
+            totalAmount: totalAmount,
+            userId: userId || req.body.userId
+        });
+
+        await newOrder.save();
+
         return res.status(200).json({ message: "Order Placed Successfully", success: true });
+
     } catch (error) {
-        return res.status(500).json({ message: "Server Error", success: false });
+        console.error("Create Order Error:", error);
+        return res.status(500).json({ message: "Server Error", success: false, error: error.message });
     }
 }
 
