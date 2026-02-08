@@ -3,25 +3,27 @@ const nodemailer = require('nodemailer');
 const fs = require('fs').promises;
 const path = require('path');
 
-// --- 1. CONFIGURATION ---
+// --- 1. CONFIGURATION (Debug Mode) ---
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // true for 465, false for other ports
+    service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    // FORCE IPv4 (Crucial for Render deployments to avoid timeouts)
-    family: 4
+    tls: {
+        // Crucial for Render: Allows connection even if SSL handshake is strict
+        rejectUnauthorized: false
+    },
+    logger: true, // Log SMTP traffic to Render console
+    debug: true   // Include debug info
 });
 
-// Helper to verify connection on startup
+// Verify connection on startup
 transporter.verify(function (error, success) {
     if (error) {
-        console.error("Transporter Error:", error);
+        console.error("🔴 Transporter Error:", error);
     } else {
-        console.log("Server is ready to take our messages");
+        console.log("🟢 Server is ready to take our messages");
     }
 });
 
@@ -29,12 +31,11 @@ transporter.verify(function (error, success) {
 
 const sendVerificationEmail = async (email, otp) => {
     try {
-        // Use path.resolve to ensure correct file location in production
-        const templatePath = path.resolve(__dirname, '../html-files/otpverify-email-template.html');
+        console.log(`Attempting to send OTP to: ${email}`); // Debug Log
 
+        const templatePath = path.resolve(__dirname, '../html-files/otpverify-email-template.html');
         let htmlContent = await fs.readFile(templatePath, 'utf8');
 
-        // Replace placeholders safely
         htmlContent = htmlContent
             .replace(/{otp}/g, otp)
             .replace(/{email}/g, email);
@@ -47,11 +48,11 @@ const sendVerificationEmail = async (email, otp) => {
         };
 
         const info = await transporter.sendMail(mailOptions);
-        console.log("OTP Email sent: %s", info.messageId);
+        console.log("✅ OTP Email sent: %s", info.messageId);
         return info;
 
     } catch (error) {
-        console.error('Error sending verification email:', error);
+        console.error('❌ Error sending verification email:', error);
         throw error;
     }
 };
@@ -61,7 +62,6 @@ const verifySuccessEmail = async (email, name) => {
         const templatePath = path.resolve(__dirname, '../html-files/verifySuccess.html');
         let htmlContent = await fs.readFile(templatePath, 'utf8');
 
-        // Replace placeholders
         htmlContent = htmlContent.replace(/{email}/g, name);
 
         const mailOptions = {
@@ -72,11 +72,11 @@ const verifySuccessEmail = async (email, name) => {
         };
 
         const info = await transporter.sendMail(mailOptions);
-        console.log("Success Email sent: %s", info.messageId);
+        console.log("✅ Success Email sent: %s", info.messageId);
         return info;
 
     } catch (error) {
-        console.error('Error sending success email:', error);
+        console.error('❌ Error sending success email:', error);
         throw error;
     }
 };
@@ -100,11 +100,11 @@ const PaymentSuccess = async (email, name, productName, productPrice) => {
         };
 
         const info = await transporter.sendMail(mailOptions);
-        console.log("Payment Email sent: %s", info.messageId);
+        console.log("✅ Payment Email sent: %s", info.messageId);
         return info;
 
     } catch (error) {
-        console.error('Error sending payment email:', error);
+        console.error('❌ Error sending payment email:', error);
         throw error;
     }
 };
