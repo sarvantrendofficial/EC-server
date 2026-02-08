@@ -4,21 +4,22 @@ const fs = require('fs').promises;
 const path = require('path');
 
 // --- 1. CONFIGURATION ---
-// Use explicit host/port settings for better reliability on Render
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
     secure: false, // true for 465, false for other ports
     auth: {
-        user: process.env.EMAIL_USER, // e.g. sarvantrendofficial@gmail.com
-        pass: process.env.EMAIL_PASS  // The 16-char App Password (ucpc buhf yjfg ykdd)
-    }
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    },
+    // FORCE IPv4 (Crucial for Render deployments to avoid timeouts)
+    family: 4
 });
 
 // Helper to verify connection on startup
 transporter.verify(function (error, success) {
     if (error) {
-        console.log("Transporter Error:", error);
+        console.error("Transporter Error:", error);
     } else {
         console.log("Server is ready to take our messages");
     }
@@ -28,7 +29,7 @@ transporter.verify(function (error, success) {
 
 const sendVerificationEmail = async (email, otp) => {
     try {
-        // Use path.resolve for better reliability in production
+        // Use path.resolve to ensure correct file location in production
         const templatePath = path.resolve(__dirname, '../html-files/otpverify-email-template.html');
 
         let htmlContent = await fs.readFile(templatePath, 'utf8');
@@ -39,7 +40,7 @@ const sendVerificationEmail = async (email, otp) => {
             .replace(/{email}/g, email);
 
         const mailOptions = {
-            from: `"Sarvan Trend" <${process.env.EMAIL_USER}>`, // Professional "From" format
+            from: `"Sarvan Trend" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: 'Email Verification Code',
             html: htmlContent
@@ -60,8 +61,8 @@ const verifySuccessEmail = async (email, name) => {
         const templatePath = path.resolve(__dirname, '../html-files/verifySuccess.html');
         let htmlContent = await fs.readFile(templatePath, 'utf8');
 
-        // Ensure variable names match your HTML template placeholders
-        htmlContent = htmlContent.replace(/{email}/g, name); // Note: You were replacing {email} with name, kept as is.
+        // Replace placeholders
+        htmlContent = htmlContent.replace(/{email}/g, name);
 
         const mailOptions = {
             from: `"Sarvan Trend" <${process.env.EMAIL_USER}>`,
