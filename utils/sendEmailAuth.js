@@ -7,8 +7,8 @@ const path = require('path');
 // Use explicit host/port settings for better reliability on Render
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // true for 465, false for other ports
+    port: 587,
+    secure: false, // true for 465, false for other ports
     auth: {
         user: process.env.EMAIL_USER, // e.g. sarvantrendofficial@gmail.com
         pass: process.env.EMAIL_PASS  // The 16-char App Password (ucpc buhf yjfg ykdd)
