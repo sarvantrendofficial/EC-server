@@ -23,6 +23,8 @@ app.use('/api/v1/admin', Admin);
 app.use('/api/v1/users', Users);
 app.use('/api/v1/cart', Cart);
 
+app.get('/', (req, res) => res.send('Hello World'));
+
 mongoose.connect(process.env.MONGODB_URL, {
     dbname: "EasiShop"
 }).then(() => console.log("MongoDB Connected Successfully"))
