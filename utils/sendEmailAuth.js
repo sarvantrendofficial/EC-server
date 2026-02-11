@@ -5,18 +5,18 @@ const path = require('path');
 
 // --- 1. CONFIGURATION (Debug Mode) ---
 const transporter = nodemailer.createTransport({
-    service: 'smtp.gmail.com',
+    host: 'smtp.gmail.com', // CHANGED: 'service' to 'host'
     port: 465,
+    secure: true, // Use true for port 465, false for all other ports
     auth: {
-        user:'sarvantrendofficial@gmail.com',
-        pass:'zeepwohfsbbgmezh'
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     },
     tls: {
-        // Crucial for Render: Allows connection even if SSL handshake is strict
         rejectUnauthorized: false
     },
-    logger: true, // Log SMTP traffic to Render console
-    debug: true   // Include debug info
+    logger: true, 
+    debug: true   
 });
 
 // Verify connection on startup
