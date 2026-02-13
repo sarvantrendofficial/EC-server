@@ -51,7 +51,7 @@ exports.Register = async (req, res) => {
             return res.status(400).json({ message: "All fields are required" });
         }
         const otp = otpGen.generate(6, { upperCase: false, specialChars: false, alphabets: false });
-        const otpData = await Otp.create({ email, otp });
+        await Otp.create({ email, otp });
         await sendVerificationEmail(email, otp);
         const user = await Users.create({ name, email, password });
         await Profile.create({
