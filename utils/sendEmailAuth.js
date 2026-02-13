@@ -1,39 +1,17 @@
 require('dotenv').config();
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 const fs = require('fs').promises;
 const path = require('path');
 
-// --- 1. CONFIGURATION (Debug Mode) ---
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com', // CHANGED: 'service' to 'host'
-    port: 465,
-    secure: true, // Use true for port 465, false for all other ports
-    auth: {
-        user: 'sarvantrendofficial@gmail.com',
-        pass: 'zeepwohfsbbgmezh'
-    },
-    tls: {
-        rejectUnauthorized: false
-    },
-    logger: true, 
-    debug: true   
-});
+// --- 1. CONFIGURATION ---
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// Verify connection on startup
-transporter.verify(function (error, success) {
-    if (error) {
-        console.error("🔴 Transporter Error:", error);
-    } else {
-        console.log("🟢 Server is ready to take our messages");
-    }
-});
+const senderEmail = process.env.EMAIL_FROM; // Must be verified in SendGrid
 
 // --- 2. EMAIL FUNCTIONS ---
 
 const sendVerificationEmail = async (email, otp) => {
     try {
-        console.log(`Attempting to send OTP to: ${email}`); // Debug Log
-
         const templatePath = path.resolve(__dirname, '../html-files/otpverify-email-template.html');
         let htmlContent = await fs.readFile(templatePath, 'utf8');
 
@@ -41,19 +19,22 @@ const sendVerificationEmail = async (email, otp) => {
             .replace(/{otp}/g, otp)
             .replace(/{email}/g, email);
 
-        const mailOptions = {
-            from: `"Sarvan Trend" <${process.env.EMAIL_USER}>`,
+        const msg = {
             to: email,
-            subject: 'Email Verification Code',
-            html: htmlContent
+            from: senderEmail, // Verified sender
+            subject: 'Email Verification Code - Sarvan Trend',
+            html: htmlContent,
         };
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log("✅ OTP Email sent: %s", info.messageId);
-        return info;
+        await sgMail.send(msg);
+        console.log(`✅ OTP Email sent to ${email}`);
+        return true;
 
     } catch (error) {
         console.error('❌ Error sending verification email:', error);
+        if (error.response) {
+            console.error(error.response.body);
+        }
         throw error;
     }
 };
@@ -65,16 +46,16 @@ const verifySuccessEmail = async (email, name) => {
 
         htmlContent = htmlContent.replace(/{email}/g, name);
 
-        const mailOptions = {
-            from: `"Sarvan Trend" <${process.env.EMAIL_USER}>`,
+        const msg = {
             to: email,
-            subject: 'Verification Successful',
-            html: htmlContent
+            from: senderEmail,
+            subject: 'Verification Successful - Sarvan Trend',
+            html: htmlContent,
         };
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log("✅ Success Email sent: %s", info.messageId);
-        return info;
+        await sgMail.send(msg);
+        console.log(`✅ Success Email sent to ${email}`);
+        return true;
 
     } catch (error) {
         console.error('❌ Error sending success email:', error);
@@ -93,16 +74,16 @@ const PaymentSuccess = async (email, name, productName, productPrice) => {
             .replace(/{productName}/g, productName)
             .replace(/{productPrice}/g, productPrice);
 
-        const mailOptions = {
-            from: `"Sarvan Trend" <${process.env.EMAIL_USER}>`,
+        const msg = {
             to: email,
-            subject: 'Payment Successful',
-            html: htmlContent
+            from: senderEmail,
+            subject: 'Payment Successful - Sarvan Trend',
+            html: htmlContent,
         };
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log("✅ Payment Email sent: %s", info.messageId);
-        return info;
+        await sgMail.send(msg);
+        console.log(`✅ Payment Email sent to ${email}`);
+        return true;
 
     } catch (error) {
         console.error('❌ Error sending payment email:', error);
